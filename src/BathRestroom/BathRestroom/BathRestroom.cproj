@@ -105,6 +105,9 @@
     <None Include="leak_detector.h">
       <SubType>compile</SubType>
     </None>
+    <None Include="pt_ext.h">
+      <SubType>compile</SubType>
+    </None>
     <Compile Include="systimer.c">
       <SubType>compile</SubType>
     </Compile>
