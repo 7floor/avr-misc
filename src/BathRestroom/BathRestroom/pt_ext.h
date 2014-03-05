@@ -11,49 +11,69 @@
 
 #include "pt/pt.h"
 
-typedef struct 
-{
-	struct pt pt;
-	void* params;	
-} pt_context;
-
-typedef PT_THREAD( (*pt_thread)(pt_context *context) );
+typedef PT_THREAD((*pt_thread)(struct pt *pt, void *context));
 
 typedef struct  
 {
+	struct pt pt;
 	pt_thread thread;
-	pt_context context;
-} scheduler_task;
+	void *context;
+	char status;
+} pt_task;
 
 typedef struct
 {
-	scheduler_task (*tasks)[];
+	pt_task (*tasks)[];
 	uint8_t task_count;
-} scheduler_params;
+	uint8_t task_index;
+} scheduler_context;
 
-PT_THREAD(pt_scheduler(pt_context *context));
-PT_THREAD(test(pt_context *context));
+PT_THREAD(scheduler(struct pt *pt, scheduler_context *context));
 
-static scheduler_task tasks[] = {{thread: test, context: {}}};
+//PT_THREAD(test(struct pt *pt, void *params));
+//static pt_task tasks[] = {{thread: test}, {thread: scheduler}};
 
-PT_THREAD(pt_scheduler(pt_context *context))
+void init_tasks(pt_task *task, uint8_t count)
 {
-	scheduler_params* params = context->params;
-	static uint8_t i;
+	uint8_t i = count;
+	while (i > 0)
+	{
+		i--;
+		PT_INIT(&task->pt);
+		task->status = PT_WAITING; 
+		task++;
+	}
+}
 
-	PT_BEGIN(&context->pt);
-	
+/*
+void init_tasks2(scheduler_task tasks[], uint8_t count)
+{
+	for(uint8_t i = 0; i < count; i++)
+	{
+		PT_INIT(&tasks[i].pt);
+	}
+}
+*/
+
+PT_THREAD(scheduler(struct pt *pt, scheduler_context *context))
+{
+	PT_BEGIN(pt);
+
 	while(1)
 	{
-		for(i = 0; i < params->task_count; i++)
+		for(context->task_index = 0; context->task_index < context->task_count; context->task_index++)
 		{
-			scheduler_task *task = &(*params->tasks)[i];
-			task->thread(&task->context);
-			PT_YIELD(&context->pt);
+			pt_task *task = &(*context->tasks)[context->task_index];
+			if (task->status < PT_EXITED)
+			{
+				task->status = PT_SCHEDULE(task->thread(&task->pt, task->context));
+			}
+			PT_YIELD(pt);
 		}
+		PT_YIELD(pt);
 	}
 	
-	PT_END(&context->pt);
+	PT_END(pt);
 }
 
 #endif /* PT_EXT_H_ */

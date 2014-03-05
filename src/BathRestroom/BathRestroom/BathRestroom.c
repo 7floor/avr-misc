@@ -10,7 +10,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include "io_defs.h"
-//#include "pt/pt.h"
+#include "pt/pt.h"
 #include "pt_ext.h"
 #include "systimer.h"
 #include "alarm.h"
