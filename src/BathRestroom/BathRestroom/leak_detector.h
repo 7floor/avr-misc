@@ -10,7 +10,7 @@
 #define LEAK_DETECTOR_H_
 
 #include <stdbool.h>
-#include "pt/pt.h"
+#include "pt_ext.h"
 #include "systimer.h"
 #include "alarm.h"
 
@@ -43,7 +43,7 @@ PT_THREAD(leak_detector_thread(struct pt *pt))
 		bool detected = !(LEAKDET_PIN & (1 << LEAKDET_P));
 		set_alarm(detected);
 	}
-	PT_END(pt);
+	PT_ENDLESS(pt);
 }
 
 

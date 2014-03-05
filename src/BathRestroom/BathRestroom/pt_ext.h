@@ -9,7 +9,11 @@
 #ifndef PT_EXT_H_
 #define PT_EXT_H_
 
+#include <stddef.h>
+#define LC_INCLUDE "lc-addrlabels.h"
 #include "pt/pt.h"
+
+#define PT_ENDLESS(pt) LC_END((pt)->lc); return 0; }
 
 typedef PT_THREAD((*pt_thread)(struct pt *pt, void *context));
 
@@ -55,6 +59,7 @@ void init_tasks2(scheduler_task tasks[], uint8_t count)
 }
 */
 
+
 PT_THREAD(scheduler(struct pt *pt, scheduler_context *context))
 {
 	PT_BEGIN(pt);
@@ -73,7 +78,7 @@ PT_THREAD(scheduler(struct pt *pt, scheduler_context *context))
 		PT_YIELD(pt);
 	}
 	
-	PT_END(pt);
+	PT_ENDLESS(pt);
 }
 
 #endif /* PT_EXT_H_ */

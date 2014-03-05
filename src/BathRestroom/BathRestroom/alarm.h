@@ -10,7 +10,7 @@
 #define ALARM_H_
 
 #include <stdbool.h>
-#include "pt/pt.h"
+#include "pt_ext.h"
 #include "systimer.h"
 
 static void init_alarm();
@@ -84,7 +84,7 @@ PT_THREAD(alarm_thread(struct pt *pt))
 	#endif
 	}
 	
-	PT_END(pt);
+	PT_ENDLESS(pt);
 }
 
 #endif /* ALARM_H_ */
