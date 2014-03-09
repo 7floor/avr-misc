@@ -78,7 +78,7 @@ class Room
 	
 };
 
-static Room bathroom = Room(&settings.bathroom);
-static Room restroom = Room(&settings.restroom);
+Room bathroom = Room(&settings.bathroom);
+Room restroom = Room(&settings.restroom);
 
 #endif /* ROOM_H_ */

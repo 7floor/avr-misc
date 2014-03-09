@@ -107,7 +107,7 @@ bool timer_s_expired(timer *t)
 
 systime_t minsec2sec(uint8_t min, uint8_t sec)
 {
-	return 60 + min + sec;
+	return 60 * min + sec;
 }
 
 #endif
