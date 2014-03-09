@@ -58,6 +58,7 @@ bool stopwatch_elapsed(stopwatch *sw, systime_t interval)
 void timer_set(timer *t, systime_t interval)
 {
 	timer_start(t);
+	//t->start = get_systime();
 	t->interval = interval;
 }
 
@@ -86,6 +87,7 @@ bool stopwatch_s_elapsed(stopwatch *sw, systime_t interval)
 void timer_s_set(timer *t, systime_t interval)
 {
 	timer_s_start(t);
+	//t->start = get_systime_s();
 	t->interval = interval;
 }
 
