@@ -15,6 +15,8 @@
 
 #define PT_ENDLESS(pt) LC_END((pt)->lc); return 0; }
 
+//to do: think about scheduler for classes
+
 typedef PT_THREAD((*pt_thread)(struct pt *pt, void *context));
 
 typedef struct  
@@ -32,12 +34,12 @@ typedef struct
 	uint8_t task_index;
 } scheduler_context;
 
-PT_THREAD(scheduler(struct pt *pt, scheduler_context *context));
+static PT_THREAD(scheduler(struct pt *pt, scheduler_context *context));
 
 //PT_THREAD(test(struct pt *pt, void *params));
 //static pt_task tasks[] = {{thread: test}, {thread: scheduler}};
 
-void init_tasks(pt_task *task, uint8_t count)
+static void init_tasks(pt_task *task, uint8_t count)
 {
 	uint8_t i = count;
 	while (i > 0)
@@ -49,15 +51,15 @@ void init_tasks(pt_task *task, uint8_t count)
 	}
 }
 
-/*
-void init_tasks2(scheduler_task tasks[], uint8_t count)
+
+static void init_tasks2(pt_task tasks[], uint8_t count)
 {
 	for(uint8_t i = 0; i < count; i++)
 	{
 		PT_INIT(&tasks[i].pt);
 	}
 }
-*/
+
 
 
 PT_THREAD(scheduler(struct pt *pt, scheduler_context *context))
@@ -80,5 +82,6 @@ PT_THREAD(scheduler(struct pt *pt, scheduler_context *context))
 	
 	PT_ENDLESS(pt);
 }
+
 
 #endif /* PT_EXT_H_ */
