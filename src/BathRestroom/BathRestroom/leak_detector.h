@@ -11,41 +11,46 @@
 
 #include <stdbool.h>
 #include "pt_ext.h"
-#include "systimer.h"
-#include "alarm.h"
-
-static void init_leak_detector();
-static void process_leak_detector();
-PT_THREAD(leak_detector_thread(struct pt *pt));
-
-static struct pt pt_leak_detector;
-
-static void init_leak_detector()
+extern "C"
 {
-	PT_INIT(&pt_leak_detector);
+	#include "timers/timers.h"
 }
 
-void process_leak_detector()
+class LeakDetector
 {
-	PT_SCHEDULE(leak_detector_thread(&pt_leak_detector));
-}
-
-PT_THREAD(leak_detector_thread(struct pt *pt))
-{
-	static timer detect_period;
+	struct pt pt;
+	//stopwatch sw;
+	bool detected;
 	
-	PT_BEGIN(pt);
-	while(1)
+	
+	public:
+	
+	LeakDetector()
 	{
-		set_timer(&detect_period, 1000);
-		PT_WAIT_UNTIL(pt, is_timer_expired(&detect_period));
-		
-		bool detected = !(LEAKDET_PIN & (1 << LEAKDET_P));
-		set_alarm(detected);
+		PT_INIT(&pt);
 	}
-	PT_ENDLESS(pt);
-}
+	
+	PT_THREAD(run())
+	{	
+		PT_BEGIN(&pt);
+	
+		while(1)
+		{
+			//stopwatch_start(&sw);
+			//PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, 1000));
+			PT_YIELD(&pt);
+		
+			detected = !(LEAKDET_PIN & (1 << LEAKDET_P));
+			//set_alarm(detected);
+		}
+	
+		PT_ENDLESS(&pt);
+	}
+	
+	bool is_detected() { return detected; }
+};
 
-
+LeakDetector brld = LeakDetector();
+LeakDetector rrld = LeakDetector();
 
 #endif /* LEAK_DETECTOR_H_ */

@@ -9,11 +9,15 @@
 #include <stdbool.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+extern "C"
+{
+	#include "timers/timers.h"
+}
 #include "io_defs.h"
-#include "pt_ext.h"
-#include "systimer.h"
+#include "IOManager.h"
 #include "alarm.h"
 #include "leak_detector.h"
+#include "room.h"
 
 static void init_io()
 {
@@ -27,14 +31,16 @@ int main(void)
 {
 	init_io();
 	init_systimer();
-	init_alarm();
-	init_leak_detector();
 	
 	sei();
 	
     while(1)
     {
-		process_alarm();
-		process_leak_detector();
+		iomanager.run();
+		alarm.run();
+		brld.run();
+		rrld.run();
+		bathroom.run();
+		restroom.run();
     }
 }

@@ -8,7 +8,7 @@
     <avrdevice>ATtiny2313</avrdevice>
     <avrdeviceseries>none</avrdeviceseries>
     <OutputType>Executable</OutputType>
-    <Language>C</Language>
+    <Language>CPP</Language>
     <OutputFileName>$(MSBuildProjectName)</OutputFileName>
     <OutputFileExtension>.elf</OutputFileExtension>
     <OutputDirectory>$(MSBuildProjectDirectory)\$(Configuration)</OutputDirectory>
@@ -22,7 +22,8 @@
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfVersion>3.5.0</AsfVersion>
     <avrtoolinterface>ISP</avrtoolinterface>
-    <avrtool>com.atmel.avrdbg.tool.avrdragon</avrtool>
+    <avrtool>
+    </avrtool>
     <com_atmel_avrdbg_tool_avrdragon>
       <ToolType>com.atmel.avrdbg.tool.avrdragon</ToolType>
       <ToolName>AVR Dragon</ToolName>
@@ -75,7 +76,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ToolchainSettings>
-      <AvrGcc>
+      <AvrGccCpp>
   <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
   <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
   <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
@@ -87,42 +88,76 @@
       <Value>F_CPU=8000000</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
-  <avrgcc.compiler.optimization.level>Optimize (-O1)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
   <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
   <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
   <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
   <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
-  <avrgcc.linker.libraries.Libraries>
+  <avrgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
-      <Value>m</Value>
+      <Value>F_CPU=8000000</Value>
     </ListValues>
-  </avrgcc.linker.libraries.Libraries>
-  <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
-</AvrGcc>
+  </avrgcccpp.compiler.symbols.DefSymbols>
+  <avrgcccpp.compiler.optimization.level>Optimize for size (-Os)</avrgcccpp.compiler.optimization.level>
+</AvrGccCpp>
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="IOManager.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="eeprom.h">
+      <SubType>compile</SubType>
+    </None>
+    <Compile Include="timers\systimer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <None Include="timers\systimer.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="timers\timers.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="leak_detector.h">
       <SubType>compile</SubType>
     </None>
     <None Include="pt_ext.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="systimer.c">
+    <None Include="room.h">
       <SubType>compile</SubType>
-    </Compile>
+    </None>
+    <None Include="settings.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="pt\lc-addrlabels.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="pt\lc-switch.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="pt\lc.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="pt\pt-sem.h">
+      <SubType>compile</SubType>
+    </None>
+    <None Include="pt\pt.h">
+      <SubType>compile</SubType>
+    </None>
     <None Include="alarm.h">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="BathRestroom.c">
+    <Compile Include="BathRestroom.cpp">
       <SubType>compile</SubType>
     </Compile>
     <None Include="io_defs.h">
       <SubType>compile</SubType>
     </None>
-    <None Include="systimer.h">
-      <SubType>compile</SubType>
-    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="pt\" />
+    <Folder Include="timers\" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
