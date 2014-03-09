@@ -10,7 +10,7 @@
 #define PT_EXT_H_
 
 #include <stddef.h>
-#define LC_INCLUDE "lc-addrlabels.h"
+//#define LC_INCLUDE "lc-addrlabels.h"
 #include "pt/pt.h"
 
 #define PT_ENDLESS(pt) LC_END((pt)->lc); return 0; }
@@ -89,11 +89,11 @@ PT_THREAD(scheduler(struct pt *pt, scheduler_context *context))
 	{
 		for(context->task_index = 0; context->task_index < context->task_count; context->task_index++)
 		{
-			pt_task *task = &(*context->tasks)[context->task_index];
-			if (task->status < PT_EXITED)
-			{
-				task->status = PT_SCHEDULE(task->thread(&task->pt, task->context));
-			}
+			//pt_task *task = &(*context->tasks)[context->task_index];
+			//if (task->status < PT_EXITED)
+			//{
+			//	task->status = PT_SCHEDULE(task->thread(&task->pt, task->context));
+			//}
 			PT_YIELD(pt);
 		}
 		PT_YIELD(pt);
