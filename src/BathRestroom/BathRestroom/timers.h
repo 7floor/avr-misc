@@ -45,6 +45,10 @@ static systime_t minsec2sec(uint8_t min, uint8_t sec);
 
 /* definitions below */
 
+//to do: test whether changing these functions to macros would help to save flash 
+//#define stopwatch_startm(sw) do { (sw).start = get_systime(); } while(0)
+//#define stopwatch_elapsedm(sw, interval) ((get_systime() - (sw).start) >= (interval))
+ 
 void stopwatch_start(stopwatch *sw)
 {
 	sw->start = get_systime();
