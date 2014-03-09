@@ -14,7 +14,7 @@
 
 typedef uint_least16_t systime_t;
 
-void init_systimer();
+void init_systime();
 systime_t get_systime();
 
 #if ENABLE_SYSTIME_S

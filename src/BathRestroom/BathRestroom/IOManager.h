@@ -11,6 +11,8 @@
 
 #include <stdbool.h>
 #include <avr/io.h>
+#include <avr/interrupt.h>
+
 #include "room.h"
 #include "alarm.h"
 #include "leak_detector.h"
@@ -21,7 +23,7 @@ class IOManager
 {
 	struct pt pt;
 	uint8_t cmd_addr;
-	bool is_reading;
+	volatile bool is_reading;
 
 	void out_port()
 	{
@@ -39,7 +41,7 @@ class IOManager
 		is_reading = false;
 		PT_INIT(&pt);
 		MCUCR |= (1 << ISC11) | (0 << ISC10); // falling edge on int1 (pd3) will trigger
-		GIMSK = (0 << INT1); // don't enable interrupt
+		GIMSK = (1 << INT1); // enable interrupt
 	}
 	
 	PT_THREAD(run())
@@ -48,15 +50,11 @@ class IOManager
 		
 		while(1)
 		{
-			if (EIFR & (1 << INTF1))
+			if (!is_reading)
 			{
-				EIFR |= (1 << INTF1); // reset flag
-				process_external_io();
-				if (is_reading)
-				PT_WAIT_UNTIL(&pt, EIFR & (1 << INTF1));
+				out_port();
 			}
 			
-			out_port();
 			PT_YIELD(&pt);
 		}
 		
@@ -95,5 +93,10 @@ class IOManager
 };
 
 IOManager iomanager = IOManager();
+
+ISR(INT1_vect)
+{
+	iomanager.process_external_io();
+}
 
 #endif /* IOMANAGER_H_ */

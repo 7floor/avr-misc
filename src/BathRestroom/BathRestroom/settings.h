@@ -31,16 +31,18 @@ typedef struct
 
 static settings_t settings;
 
-void settings_read_all()
+#define FIX_POINTER(_ptr) __asm__ __volatile__("" : "=b" (_ptr) : "0" (_ptr))
+
+static void settings_read_all()
 {
 	// read eeprom from address 1
 	for(uint8_t eeaddr = 0; eeaddr < sizeof(settings); eeaddr++)
 	{
-		*((uint8_t*)&settings + eeaddr) = EEPROM_read(eeaddr);
+		*(((uint8_t*)&settings) + eeaddr) = EEPROM_read(eeaddr);
 	}
 }
 
-void settings_set(uint8_t addr, uint8_t data)
+static void settings_set(uint8_t addr, uint8_t data)
 {
 	if (addr >= sizeof(settings)) return;
 	
@@ -49,7 +51,7 @@ void settings_set(uint8_t addr, uint8_t data)
 	EEPROM_write(addr, data);
 }
 
-uint8_t settings_get(uint8_t addr)
+static uint8_t settings_get(uint8_t addr)
 {
 	if (addr >= sizeof(settings)) return 0xff;
 	uint8_t* ptr = (uint8_t*)(&settings) + addr;

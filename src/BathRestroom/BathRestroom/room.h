@@ -26,12 +26,12 @@ class Room
 
 	bool dooropen()
 	{
-		return true;
+		return false;
 	}
 
 	bool movement()
 	{
-		return true;
+		return false;
 	}
 
 	systime_t timeout2seconds(timeout_t *t)
@@ -61,16 +61,16 @@ class Room
 			{
 				timer_s_set(&tmr, timeout2seconds(presence ? &timeouts->open_present : &timeouts->open_absent));
 				PT_WAIT_UNTIL(&pt, !(d = dooropen()) || (m = movement()) || (t = timer_s_expired(&tmr)));
+				if (!d) presence = false;
 			}
 			else
 			{
 				timer_s_set(&tmr, timeout2seconds(presence ? &timeouts->closed_present : &timeouts->closed_absent));
 				PT_WAIT_UNTIL(&pt, (d = dooropen()) || (m = movement()) || (t = timer_s_expired(&tmr)));
+				if (d) light = true;
 			}
-			light = d;
 			if(t) { light = presence = false; }
 			if(m) { light = presence = true; }
-			//light(l); maybe yield for light contol?
 		}
 	
 		PT_ENDLESS(pt);

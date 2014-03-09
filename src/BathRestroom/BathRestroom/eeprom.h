@@ -9,7 +9,7 @@
 #ifndef EEPROM_H_
 #define EEPROM_H_
 
-uint8_t EEPROM_read(uint8_t address)
+static uint8_t EEPROM_read(uint8_t address)
 {
 	// wait for completion of previous write
 	while(EECR & (1<<EEPE))	;
@@ -21,7 +21,7 @@ uint8_t EEPROM_read(uint8_t address)
 	return EEDR;
 }
 
-void EEPROM_write(uint8_t address, uint8_t data)
+static void EEPROM_write(uint8_t address, uint8_t data)
 {
 	// wait for completion of previous write
 	while(EECR & (1<<EEPE))	;

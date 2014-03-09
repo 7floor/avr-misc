@@ -17,6 +17,25 @@
 
 //to do: think about scheduler for classes
 
+// cpp
+
+/*
+class Task
+{
+	protected:
+	struct pt pt;
+	
+	public:
+	Task()
+	{
+		PT_INIT(&pt);
+	}
+	virtual PT_THREAD(run());
+};
+*/
+
+// c
+
 typedef PT_THREAD((*pt_thread)(struct pt *pt, void *context));
 
 typedef struct  

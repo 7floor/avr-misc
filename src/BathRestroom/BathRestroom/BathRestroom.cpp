@@ -30,17 +30,17 @@ static void init_io()
 int main(void)
 {
 	init_io();
-	init_systimer();
+	init_systime();
 	
 	sei();
 	
     while(1)
     {
 		iomanager.run();
-		alarm.run();
-		brld.run();
-		rrld.run();
 		bathroom.run();
 		restroom.run();
+		brld.run();
+		rrld.run();
+		alarm.run();
     }
 }
