@@ -9,21 +9,18 @@
 #define SYSTIMER_H_
 
 #include <stdint.h>
-#include <stdbool.h>
-#include <util/atomic.h>
-#include <avr/io.h>
+
+#define ENABLE_SYSTIME_S 1
 
 typedef uint_least16_t systime_t;
 
-typedef struct 
-{
-	systime_t start;
-	systime_t interval;
-} timer;
-
 void init_systimer();
 systime_t get_systime();
-void set_timer(timer *t, systime_t msecs);
-bool is_timer_expired(timer *t);
+
+#if ENABLE_SYSTIME_S
+
+systime_t get_systime_s();
+
+#endif
 
 #endif /* SYSTIMER_H_ */

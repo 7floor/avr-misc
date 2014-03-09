@@ -12,10 +12,23 @@
 
 static volatile systime_t _systime;
 
+#if ENABLE_SYSTIME_S
+	static volatile systime_t _systime_s;
+#endif
+
 ISR(TIMER0_OVF_vect)
 {
 	TCNT0 -= TCNT0_TICKS_PER_MS;
 	_systime++;
+	
+#if ENABLE_SYSTIME_S
+	static uint16_t _temp_ms = 0;
+	if (_temp_ms-- == 0)
+	{
+		_temp_ms = 999;
+		_systime_s++;
+	}
+#endif
 }
 
 void init_systimer()
@@ -32,14 +45,14 @@ systime_t get_systime()
 	}
 }
 
-void set_timer(timer *t, systime_t msecs)
+#if ENABLE_SYSTIME_S
+
+systime_t get_systime_s()
 {
-	t->interval = msecs;
-	t->start = get_systime();
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		return _systime_s;
+	}
 }
 
-bool is_timer_expired(timer *t)
-{
-	return (get_systime() - t->start) >= t->interval;
-}
-
+#endif
