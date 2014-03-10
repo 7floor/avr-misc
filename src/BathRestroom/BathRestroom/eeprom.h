@@ -9,6 +9,8 @@
 #ifndef EEPROM_H_
 #define EEPROM_H_
 
+#include <avr/io.h>
+
 static uint8_t EEPROM_read(uint8_t address)
 {
 	// wait for completion of previous write

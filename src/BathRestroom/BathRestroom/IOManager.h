@@ -27,8 +27,8 @@ class IOManager
 
 	void out_port()
 	{
-		if (bathroom.light) set_pin_0(BR_LIGHT); else set_pin_1(BR_LIGHT);
-		if (restroom.light) set_pin_0(WC_LIGHT); else set_pin_1(WC_LIGHT);
+		if (bathroom.is_light()) set_pin_0(BR_LIGHT); else set_pin_1(BR_LIGHT);
+		if (restroom.is_light()) set_pin_0(WC_LIGHT); else set_pin_1(WC_LIGHT);
 		if (brld.is_detected()) set_pin_0(BR_LEAKOUT); else set_pin_1(BR_LEAKOUT);
 		if (rrld.is_detected()) set_pin_0(WC_LEAKOUT); else set_pin_1(WC_LEAKOUT);
 	}

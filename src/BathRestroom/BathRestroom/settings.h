@@ -11,11 +11,44 @@
 
 #include <stdint.h>
 #include "eeprom.h"
+extern "C"
+{
+	#include "timers/timers.h"
+}
 
+// bit 7: 1 = min, 0 = sec
+// bits 6..0 value
+typedef struct
+{
+	bool is_min:1;
+	uint8_t val:7;
+	//uint16_t get_seconds()
+	//{
+		//return  is_min ? min2sec(val) : val;
+		//uint16_t result = val;
+//		if (is_min) result = (result << 6) - (result << 2); // x*60 = x*64 - x*4
+		//if (is_min) 
+		//{
+			//
+			//uint16_t a = result << 2;
+			//uint16_t b = a << 4;
+			//
+			//result = b - a;
+		//}			
+		//return result;
+	//}
+} timeout_t;
+
+static systime_t get_seconds(timeout_t *timeout)
+{
+	return  timeout->is_min ? min2sec(timeout->val) : timeout->val;
+}
+/*
 typedef struct
 {
 	uint8_t min, sec;
 } timeout_t;
+*/
 
 typedef struct
 {
@@ -29,7 +62,7 @@ typedef struct
 } settings_t;
 
 
-settings_t settings;
+extern settings_t settings;
 
 #define FIX_POINTER(_ptr) __asm__ __volatile__("" : "=b" (_ptr) : "0" (_ptr))
 

@@ -23,42 +23,41 @@ typedef struct
 	systime_t interval;
 } timer;
 
-static void stopwatch_start(stopwatch *sw);
-static bool stopwatch_elapsed(stopwatch *sw, systime_t interval);
+void stopwatch_start(stopwatch *sw);
+bool stopwatch_elapsed(stopwatch *sw, systime_t interval);
 
-static void timer_set(timer *t, systime_t interval);
-static void timer_start(timer *t);
-static bool timer_expired(timer *t);
+void timer_set(timer *t, systime_t interval);
+void timer_start(timer *t);
+bool timer_expired(timer *t);
 
 #if ENABLE_SYSTIME_S
 
-static void stopwatch_s_start(stopwatch *sw);
-static bool stopwatch_s_elapsed(stopwatch *sw, systime_t interval);
+void stopwatch_s_start(stopwatch *sw);
+bool stopwatch_s_elapsed(stopwatch *sw, systime_t interval);
 
-static void timer_s_set(timer *t, systime_t interval);
-static void timer_s_start(timer *t);
-static bool timer_s_expired(timer *t);
+void timer_s_set(timer *t, systime_t interval);
+void timer_s_start(timer *t);
+bool timer_s_expired(timer *t);
 
-static systime_t minsec2sec(uint8_t min, uint8_t sec);
+systime_t min2sec(systime_t sec);
 
 #endif
 
 /* definitions below */
 
-//to do: test whether changing these functions to macros would help to save flash 
-//#define stopwatch_startm(sw) do { (sw).start = get_systime(); } while(0)
-//#define stopwatch_elapsedm(sw, interval) ((get_systime() - (sw).start) >= (interval))
- 
+inline
 void stopwatch_start(stopwatch *sw)
 {
 	sw->start = get_systime();
 }
 
+inline
 bool stopwatch_elapsed(stopwatch *sw, systime_t interval)
 {
 	return (get_systime() - sw->start) >= interval;
 }
 
+inline
 void timer_set(timer *t, systime_t interval)
 {
 	timer_start(t);
@@ -66,11 +65,13 @@ void timer_set(timer *t, systime_t interval)
 	t->interval = interval;
 }
 
+inline
 void timer_start(timer *t)
 {
 	t->start = get_systime();
 }
 
+inline
 bool timer_expired(timer *t)
 {
 	return (get_systime() - t->start) >= t->interval;
@@ -78,16 +79,19 @@ bool timer_expired(timer *t)
 
 #if ENABLE_SYSTIME_S
 
+inline
 void stopwatch_s_start(stopwatch *sw)
 {
 	sw->start = get_systime_s();
 }
 
+inline
 bool stopwatch_s_elapsed(stopwatch *sw, systime_t interval)
 {
 	return (get_systime_s() - sw->start) >= interval;
 }
 
+inline
 void timer_s_set(timer *t, systime_t interval)
 {
 	timer_s_start(t);
@@ -95,19 +99,24 @@ void timer_s_set(timer *t, systime_t interval)
 	t->interval = interval;
 }
 
+inline
 void timer_s_start(timer *t)
 {
 	t->start = get_systime_s();
 }
 
+inline
 bool timer_s_expired(timer *t)
 {
 	return (get_systime_s() - t->start) >= t->interval;
 }
 
-systime_t minsec2sec(uint8_t min, uint8_t sec)
+inline
+systime_t min2sec(systime_t sec)
 {
-	return 60 * min + sec;
+	uint16_t a = sec << 2;
+	uint16_t b = a << 4;
+	return b - a;
 }
 
 #endif

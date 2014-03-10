@@ -19,6 +19,8 @@ extern "C"
 #include "leak_detector.h"
 #include "room.h"
 
+settings_t settings;
+
 static void init_io()
 {
 	ALARM_DDR |= (1 << ALARM_P);
@@ -27,7 +29,7 @@ static void init_io()
 	LEAKDET_PORT |= (1 << LEAKDET_P);
 }
 
-int main(void)
+int main(void) 
 {
 	init_io();
 	init_systime();
