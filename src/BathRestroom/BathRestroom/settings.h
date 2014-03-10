@@ -29,7 +29,7 @@ typedef struct
 } settings_t;
 
 
-static settings_t settings;
+settings_t settings;
 
 #define FIX_POINTER(_ptr) __asm__ __volatile__("" : "=b" (_ptr) : "0" (_ptr))
 
