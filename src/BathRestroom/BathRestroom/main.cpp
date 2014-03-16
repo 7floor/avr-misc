@@ -9,29 +9,39 @@
 #include <stdbool.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+
 extern "C"
 {
 	#include "timers/timers.h"
 }
 #include "io_defs.h"
 #include "IOManager.h"
-#include "alarm.h"
-#include "leak_detector.h"
 #include "room.h"
+#include "fan.h"
+#include "alarm.h"
 
-settings_t settings;
+static void reset_ds2408()
+{
+	STROBE_O &= ~(1 << STROBE);
+	STROBE_D |= (1 << STROBE);
+	_delay_us(10);
+	STROBE_D &= ~(1 << STROBE);
+	STROBE_O |= (1 << STROBE);
+}
 
 static void init_io()
 {
-	ALARM_DDR |= (1 << ALARM_P);
-	
-	LEAKDET_DDR &= ~(1 << LEAKDET_P);
-	LEAKDET_PORT |= (1 << LEAKDET_P);
+	SET_PORTA();
+	SET_PORTB();
+	SET_PORTD();
 }
 
 int main(void) 
 {
 	init_io();
+	reset_ds2408();
+	settings_read_all();
 	init_systime();
 	
 	sei();
@@ -41,8 +51,7 @@ int main(void)
 		iomanager.run();
 		bathroom.run();
 		restroom.run();
-		brld.run();
-		rrld.run();
+		fan.run();
 		alarm.run();
     }
 }

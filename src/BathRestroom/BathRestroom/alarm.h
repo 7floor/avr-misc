@@ -15,7 +15,6 @@
 
 #include <stdbool.h>
 #include "pt_ext.h"
-#include "leak_detector.h"
 extern "C" 
 {
 	#include "timers/timers.h"
@@ -40,7 +39,7 @@ class Alarm
 	
 		while(1)
 		{
-			PT_WAIT_UNTIL(&pt, brld.is_detected() || rrld.is_detected());
+			PT_WAIT_UNTIL(&pt, !CHECKBIT(LEAK_I, LEAK_BR_I) || !CHECKBIT(LEAK_I, LEAK_RR_I));
 		
 			#ifdef MORSE_CODE_SOS
 		
@@ -49,10 +48,10 @@ class Alarm
 				for (j = 0; j < 3; j++)
 				{
 					stopwatch_start(&sw);
-					ALARM_PORT |= (1 << ALARM_P);
+					SETBIT(ALARM_O, ALARM);
 					PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, i == 1 ? DASH_TIME : DOT_TIME));
 					stopwatch_start(&sw);
-					ALARM_PORT &= ~(1 << ALARM_P);
+					CLEARBIT(ALARM_O, ALARM);
 					PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, DOT_TIME * 1)); // inside char
 				}
 				PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, DOT_TIME * 3)); // inter char
@@ -62,12 +61,14 @@ class Alarm
 			#else
 
 			stopwatch_start(&sw);
-			ALARM_PORT |= (1 << ALARM_P);
+			SETBIT(ALARM_O, ALARM);
 			PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, 250));
-			ALARM_PORT &= ~(1 << ALARM_P);
+			CLEARBIT(ALARM_O, ALARM);
 			PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, 500));
 		
 			#endif
+	
+			PT_YIELD(&pt);
 		}
 	
 		PT_ENDLESS(&pt);

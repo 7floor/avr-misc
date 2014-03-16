@@ -10,7 +10,7 @@
 #define SETTINGS_H_
 
 #include <stdint.h>
-#include "eeprom.h"
+#include <avr/eeprom.h>
 extern "C"
 {
 	#include "timers/timers.h"
@@ -20,59 +20,51 @@ extern "C"
 // bits 6..0 value
 typedef struct
 {
-	bool is_min:1;
 	uint8_t val:7;
-	//uint16_t get_seconds()
-	//{
-		//return  is_min ? min2sec(val) : val;
-		//uint16_t result = val;
-//		if (is_min) result = (result << 6) - (result << 2); // x*60 = x*64 - x*4
-		//if (is_min) 
-		//{
-			//
-			//uint16_t a = result << 2;
-			//uint16_t b = a << 4;
-			//
-			//result = b - a;
-		//}			
-		//return result;
-	//}
+	bool is_min:1;
+	systime_t get_seconds()
+	{
+		return  is_min ? min2sec(val) : val;
+	}
 } timeout_t;
-
-static systime_t get_seconds(timeout_t *timeout)
-{
-	return  timeout->is_min ? min2sec(timeout->val) : timeout->val;
-}
-/*
-typedef struct
-{
-	uint8_t min, sec;
-} timeout_t;
-*/
 
 typedef struct
 {
 	timeout_t open_absent, open_present, closed_absent, closed_present;
 } room_timeouts_t;
 
+typedef struct  
+{
+	timeout_t min_presence, duration;
+} fan_timeouts_t;
+
 typedef struct
 {
+	uint8_t immediate;
 	room_timeouts_t bathroom, restroom;
-	timeout_t fan;
+	fan_timeouts_t fan;
 } settings_t;
 
-
-extern settings_t settings;
-
-#define FIX_POINTER(_ptr) __asm__ __volatile__("" : "=b" (_ptr) : "0" (_ptr))
-
+settings_t settings
+= {
+	immediate: 0,
+	bathroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
+	restroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
+	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	
+}
+;
+/*
+settings_t EEMEM settings_ee = 
+{
+	immediate: 0,
+	bathroom: { open_absent: { is_min: false, val: 3 }, open_present: { is_min: true, val: 1 }, closed_absent: { is_min: false, val: 2 }, closed_present: { is_min: true, val: 5 } },
+	restroom: { open_absent: { is_min: false, val: 3 }, open_present: { is_min: true, val: 1 }, closed_absent: { is_min: false, val: 2 }, closed_present: { is_min: true, val: 5 } },
+	fan: { min_presence: { is_min: true, val: 1 }, duration: { is_min: true, val: 1 } }	
+};
+*/
 static void settings_read_all()
 {
-	// read eeprom from address 1
-	for(uint8_t eeaddr = 0; eeaddr < sizeof(settings); eeaddr++)
-	{
-		*(((uint8_t*)&settings) + eeaddr) = EEPROM_read(eeaddr);
-	}
+	//eeprom_read_block(&settings, &settings_ee, sizeof(settings));
 }
 
 static void settings_set(uint8_t addr, uint8_t data)
@@ -81,7 +73,10 @@ static void settings_set(uint8_t addr, uint8_t data)
 	
 	uint8_t* ptr = (uint8_t*)(&settings) + addr;
 	*ptr = data;
-	EEPROM_write(addr, data);
+	
+	if (addr == 0) return; // don't store the 'immediate' member
+	
+	//eeprom_write_byte((uint8_t*)(&settings_ee) + addr, data);
 }
 
 static uint8_t settings_get(uint8_t addr)

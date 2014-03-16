@@ -11,105 +11,62 @@
 
 #include <avr/io.h>
 
-#define ALARM_DDR DDRD
-#define ALARM_PORT PORTD
-#define ALARM_P PD4
+#define SETBIT(ADDRESS,BIT) (ADDRESS |= (1<<BIT)) 
+#define CLEARBIT(ADDRESS,BIT) (ADDRESS &= ~(1<<BIT)) 
+#define FLIPBIT(ADDRESS,BIT) (ADDRESS ^= (1<<BIT)) 
+#define CHECKBIT(ADDRESS,BIT) (ADDRESS & (1<<BIT)) 
+#define COPYBIT(RADDRESS,RBIT,WADDRESS,WBIT) (CHECKBIT(RADDRESS,RBIT) ? SETBIT(WADDRESS,WBIT) : CLEARBIT(WADDRESS,WBIT))
 
-#define LEAKDET_DDR DDRB
-#define LEAKDET_PORT PORTB
-#define LEAKDET_PIN PINB
-#define LEAKDET_P PB0
+// IO
+#define IO_D DDRB
+#define IO_I PINB
+#define IO_O PORTB
+#define LEAK_BR_O 0
+#define LEAK_RR_O 1
+#define LIGHT_BR 2
+#define LIGHT_OVER_BR 3
+#define LIGHT_RR 4
+#define LIGHT_OVER_RR 5
+#define FAN 6
+#define FAN_OVER 7
 
-/////
+// DOORS
+#define DOORS_D DDRA
+#define DOORS_I PINA
+#define DOOR_BR 1
+#define DOOR_RR 0
 
-#define BR_DOOR
-#define BR_DOOR_PORT A
-#define BR_DOOR_PIN 1
+// MOVE
+#define MOVE_D DDRD
+#define MOVE_I PIND
+#define MOVE_BR 0
+#define MOVE_RR 1
 
-#define WC_DOOR
-#define WC_DOOR_PORT A
-#define WC_DOOR_PIN 0
+// LEAK
+#define LEAK_D DDRD
+#define LEAK_I PIND
+#define LEAK_BR_I 4
+#define LEAK_RR_I 5
 
-#define BR_MOVE
-#define BR_MOVE_PORT D
-#define BR_MOVE_PIN 0
+// ALARM
+#define ALARM_D DDRD
+#define ALARM_O PORTD
+#define ALARM 6
 
-#define WC_MOVE
-#define WC_MOVE_PORT D
-#define WC_MOVE_PIN 1
+// STROBE
+#define STROBE_D DDRD
+#define STROBE_O PORTD
+#define STROBE 3
 
-#define BR_LEAKIN
-#define BR_LEAKIN_PORT D
-#define BR_LEAKIN_PIN 4
+#define SET_PORTA() do { DDRA = 0; PORTA = 0xFF; } while (0) // all inputs with pull-ups
+#define SET_PORTB() do { DDRB = 0; PORTB = 0xFF; } while (0) // all inputs with pull-ups
+#define SET_PORTD() do { DDRD = (1 << ALARM); PORTD = ~(1 << ALARM); } while (0)
 
-#define WC_LEAKIN
-#define WC_LEAKIN_PORT D
-#define WC_LEAKIN_PIN 5
-
-#define BR_LEAKOUT
-#define BR_LEAKOUT_PORT B
-#define BR_LEAKOUT_PIN 0
-
-#define WC_LEAKOUT
-#define WC_LEAKOUT_PORT B
-#define WC_LEAKOUT_PIN 1
-
-#define BR_LIGHT
-#define BR_LIGHT_PORT B
-#define BR_LIGHT_PIN 2
-
-#define BR_LIGHT_OVER
-#define BR_LIGHT_OVER_PORT B
-#define BR_LIGHT_OVER_PIN 3
-
-#define WC_LIGHT
-#define WC_LIGHT_PORT B
-#define WC_LIGHT_PIN 4
-
-#define WC_LIGHT_OVER
-#define WC_LIGHT_OVER_PORT B
-#define WC_LIGHT_OVER_PIN 5
-
-#define WC_VENT
-#define WC_VENT_PORT B
-#define WC_VENT_PIN 6
-
-#define WC_VENT_OVER
-#define WC_VENT_OVER_PORT B
-#define WC_VENT_OVER_PIN 7
-
-//// port b uses shared bus logic
-// down is real down, up is input with pullup
-// so use the following macros
-
-#define set_pin_0(pin) set_portpin_0(pin ## _PORT, pin ## _PIN)
-#define set_portpin_0(port, pin) _set_portpin_0_(port, pin)
-#define _set_portpin_0_(port, pin) \
-do { \
-	PORT ## port &= ~(1 << (pin)); \
-	DDR ## port |= (1 << (pin)); \
-} while(0)
-
-#define set_pin_1(pin) set_portpin_1(pin ## _PORT, pin ## _PIN)
-#define set_portpin_1(port, pin) _set_portpin_1_(port, pin)
-#define _set_portpin_1_(port, pin) \
-do { \
-	DDR ## port &= ~(1 << (pin)); \
-	PORT ## port |= (1 << (pin)); \
-} while(0)
-
-#define pin_is_0(pin) portpin_is_0(pin ## _PORT, pin ## _PIN)
-#define portpin_is_0(port, pin) _portpin_is_0_(port, pin)
-#define _portpin_is_0_(port, pin) \
-((PIN ## port & (1 << (pin))) == 0)
-
-#define pin_is_1(pin) portpin_is_1(pin ## _PORT, pin ## _PIN)
-#define portpin_is_1(port, pin) _portpin_is_1_(port, pin)
-#define _portpin_is_1_(port, pin) \
-((PIN ## port & (1 << (pin))) != 0)
-
-
-
+#define OUT_SAFE(b) do { \
+	IO_O &= b; \
+	IO_D = ~b; \
+	IO_O = b; \
+} while (0) 
 
 
 
