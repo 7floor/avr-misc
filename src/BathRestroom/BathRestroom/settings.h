@@ -53,18 +53,19 @@ settings_t settings
 	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	
 }
 ;
-/*
-settings_t EEMEM settings_ee = 
-{
+
+settings_t EEMEM settings_ee
+= {
 	immediate: 0,
-	bathroom: { open_absent: { is_min: false, val: 3 }, open_present: { is_min: true, val: 1 }, closed_absent: { is_min: false, val: 2 }, closed_present: { is_min: true, val: 5 } },
-	restroom: { open_absent: { is_min: false, val: 3 }, open_present: { is_min: true, val: 1 }, closed_absent: { is_min: false, val: 2 }, closed_present: { is_min: true, val: 5 } },
-	fan: { min_presence: { is_min: true, val: 1 }, duration: { is_min: true, val: 1 } }	
-};
-*/
+	bathroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
+	restroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
+	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	
+}
+;
+
 static void settings_read_all()
 {
-	//eeprom_read_block(&settings, &settings_ee, sizeof(settings));
+	eeprom_read_block(&settings, &settings_ee, sizeof(settings));
 }
 
 static void settings_set(uint8_t addr, uint8_t data)
@@ -76,7 +77,7 @@ static void settings_set(uint8_t addr, uint8_t data)
 	
 	if (addr == 0) return; // don't store the 'immediate' member
 	
-	//eeprom_write_byte((uint8_t*)(&settings_ee) + addr, data);
+	eeprom_write_byte((uint8_t*)(&settings_ee) + addr, data);
 }
 
 static uint8_t settings_get(uint8_t addr)
@@ -85,7 +86,5 @@ static uint8_t settings_get(uint8_t addr)
 	uint8_t* ptr = (uint8_t*)(&settings) + addr;
 	return *ptr;
 }
-
-
 
 #endif /* SETTINGS_H_ */

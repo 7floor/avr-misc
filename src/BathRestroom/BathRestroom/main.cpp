@@ -41,7 +41,7 @@ int main(void)
 {
 	init_io();
 	reset_ds2408();
-	settings_read_all();
+	//settings_read_all();
 	init_systime();
 	
 	sei();

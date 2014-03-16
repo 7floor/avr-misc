@@ -61,7 +61,10 @@ PT_THREAD(Room::run())
 		{
 			timer_s_set(&tmr, presence ? timeouts->open_present.get_seconds() : timeouts->open_absent.get_seconds());
 			PT_WAIT_UNTIL(&pt, !(d = dooropen) || (m = movement) || (t = timer_s_expired(&tmr)));
-			if (!d) presence = false;
+			if (!d)
+			{
+				if (!presence) light = false; else presence = false;
+			}				
 		}
 		else
 		{
