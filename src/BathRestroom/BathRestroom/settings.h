@@ -65,6 +65,7 @@ settings_t EEMEM settings_ee
 
 static void settings_read_all()
 {
+	eeprom_write_block(&settings, &settings_ee, sizeof(settings));
 	eeprom_read_block(&settings, &settings_ee, sizeof(settings));
 }
 

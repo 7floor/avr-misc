@@ -53,29 +53,49 @@ PT_THREAD(Room::run())
 {
 	PT_BEGIN(&pt);
 	
-	bool d, m, t;
-
+	systime_t timeout;
+	timeout = 0;
+	
 	while(1) 
 	{
+		timer_s_set(&tmr, timeout);
+
+		PT_YIELD(&pt);
+
 		if(dooropen)
 		{
-			timer_s_set(&tmr, presence ? timeouts->open_present.get_seconds() : timeouts->open_absent.get_seconds());
-			PT_WAIT_UNTIL(&pt, !(d = dooropen) || (m = movement) || (t = timer_s_expired(&tmr)));
-			if (!d)
+			PT_WAIT_UNTIL(&pt, !dooropen || movement || timer_s_expired(&tmr));
+			if (!dooropen)
 			{
-				if (!presence) light = false; else presence = false;
-			}				
+				if(!presence) light = false;
+				timeout = timeouts->closed_absent.get_seconds();
+				continue;
+			}
+			else if(movement)
+			{
+				timeout = timeouts->open_present.get_seconds();
+				presence = true;
+				continue;
+			}
 		}
 		else
 		{
-			timer_s_set(&tmr, presence ? timeouts->closed_present.get_seconds() : timeouts->closed_absent.get_seconds());
-			PT_WAIT_UNTIL(&pt, (d = dooropen) || (m = movement) || (t = timer_s_expired(&tmr)));
-			if (d) light = true;
+			PT_WAIT_UNTIL(&pt, dooropen || movement || timer_s_expired(&tmr));
+			if (dooropen) 
+			{
+				light = true;
+				timeout = timeouts->open_absent.get_seconds();
+				continue;
+			}
+			else if (movement)
+			{
+				timeout = timeouts->closed_present.get_seconds();
+				presence = true;
+				continue;
+			}				
 		}
-		if(t) { light = presence = false; }
-		if(m) { light = presence = true; }
-		
-		PT_YIELD(&pt);
+		light = presence = false;
+		timeout = 1;
 	}
 
 	PT_ENDLESS(pt);
