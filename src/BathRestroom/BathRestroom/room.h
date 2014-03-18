@@ -54,49 +54,49 @@ PT_THREAD(Room::run())
 	PT_BEGIN(&pt);
 	
 	systime_t timeout;
-	timeout = 0;
 	bool d, m, t;
 	
+	timeout = 1;
+
 	while(1) 
 	{
 		timer_s_set(&tmr, timeout);
 
-		PT_YIELD(&pt);
-
 		if(dooropen)
 		{
-			PT_WAIT_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (!d || m || t)));
+			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (!d || m || t)));
 			if (!d)
 			{
 				if(!presence) light = false;
 				timeout = timeouts->closed_absent.get_seconds();
-				continue;
 			}
-			else if(m)
+			else if (m)
 			{
 				timeout = timeouts->open_present.get_seconds();
-				light = presence = true;
-				continue;
 			}
 		}
 		else
 		{
-			PT_WAIT_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (d || m || t)));
-			if (d) 
+			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (d || m || t)));
+			if (d)
 			{
 				light = true;
 				timeout = timeouts->open_absent.get_seconds();
-				continue;
 			}
 			else if (m)
 			{
 				timeout = timeouts->closed_present.get_seconds();
-				light = presence = true;
-				continue;
-			}				
+			}
 		}
-		light = presence = false;
-		timeout = 1;
+		if (m)
+		{
+			 light = presence = true;
+		}		
+		else if (t) 
+		{
+			light = presence = false; 
+			timeout = 1;
+		}
 	}
 
 	PT_ENDLESS(pt);

@@ -41,26 +41,29 @@ Fan::Fan()
 
 /*
 on presence detected, start timer min_resence
-when timer expired start fan
-when presence ended, start fan for timeout
+when timer expired 
+  start fan and when presence ended, continue fan for timeout
 */
 
 PT_THREAD(Fan::run())
 {
 	PT_BEGIN(&pt);
 	
+	bool t;
+	
 	while(1) 
 	{
 		PT_WAIT_UNTIL(&pt, restroom.get_presence());
 		timer_s_set(&tmr, settings.fan.min_presence.get_seconds());
-		PT_WAIT_UNTIL(&pt, !restroom.get_presence() || timer_s_expired(&tmr));
-		active = true;
-		PT_WAIT_UNTIL(&pt, !restroom.get_presence());
-		timer_s_set(&tmr, settings.fan.duration.get_seconds());
-		PT_WAIT_UNTIL(&pt, timer_s_expired(&tmr));
-		active = false;
-
-		PT_YIELD(&pt);
+		PT_WAIT_UNTIL(&pt, (t = timer_s_expired(&tmr), (t || !restroom.get_presence())));
+		if (t)
+		{
+			active = true;
+			PT_WAIT_UNTIL(&pt, !restroom.get_presence());
+			timer_s_set(&tmr, settings.fan.duration.get_seconds());
+			PT_WAIT_UNTIL(&pt, timer_s_expired(&tmr));
+			active = false;
+		}
 	}
 
 	PT_ENDLESS(pt);

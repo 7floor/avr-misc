@@ -45,33 +45,27 @@ systime_t min2sec(systime_t sec);
 
 /* definitions below */
 
-inline
 void stopwatch_start(stopwatch *sw)
 {
 	sw->start = get_systime();
 }
 
-inline
 bool stopwatch_elapsed(stopwatch *sw, systime_t interval)
 {
 	return (get_systime() - sw->start) >= interval;
 }
 
-inline
 void timer_set(timer *t, systime_t interval)
 {
-	timer_start(t);
-	//t->start = get_systime();
+	t->start = get_systime();
 	t->interval = interval;
 }
 
-inline
 void timer_start(timer *t)
 {
 	t->start = get_systime();
 }
 
-inline
 bool timer_expired(timer *t)
 {
 	return (get_systime() - t->start) >= t->interval;
@@ -79,39 +73,32 @@ bool timer_expired(timer *t)
 
 #if ENABLE_SYSTIME_S
 
-inline
 void stopwatch_s_start(stopwatch *sw)
 {
 	sw->start = get_systime_s();
 }
 
-inline
 bool stopwatch_s_elapsed(stopwatch *sw, systime_t interval)
 {
 	return (get_systime_s() - sw->start) >= interval;
 }
 
-inline
 void timer_s_set(timer *t, systime_t interval)
 {
-	timer_s_start(t);
-	//t->start = get_systime_s();
+	t->start = get_systime_s();
 	t->interval = interval;
 }
 
-inline
 void timer_s_start(timer *t)
 {
 	t->start = get_systime_s();
 }
 
-inline
 bool timer_s_expired(timer *t)
 {
 	return (get_systime_s() - t->start) >= t->interval;
 }
 
-inline
 systime_t min2sec(systime_t sec)
 {
 	uint16_t a = sec << 2;
