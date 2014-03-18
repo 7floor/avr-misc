@@ -55,6 +55,7 @@ PT_THREAD(Room::run())
 	
 	systime_t timeout;
 	timeout = 0;
+	bool d, m, t;
 	
 	while(1) 
 	{
@@ -64,33 +65,33 @@ PT_THREAD(Room::run())
 
 		if(dooropen)
 		{
-			PT_WAIT_UNTIL(&pt, !dooropen || movement || timer_s_expired(&tmr));
-			if (!dooropen)
+			PT_WAIT_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (!d || m || t)));
+			if (!d)
 			{
 				if(!presence) light = false;
 				timeout = timeouts->closed_absent.get_seconds();
 				continue;
 			}
-			else if(movement)
+			else if(m)
 			{
 				timeout = timeouts->open_present.get_seconds();
-				presence = true;
+				light = presence = true;
 				continue;
 			}
 		}
 		else
 		{
-			PT_WAIT_UNTIL(&pt, dooropen || movement || timer_s_expired(&tmr));
-			if (dooropen) 
+			PT_WAIT_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (d || m || t)));
+			if (d) 
 			{
 				light = true;
 				timeout = timeouts->open_absent.get_seconds();
 				continue;
 			}
-			else if (movement)
+			else if (m)
 			{
 				timeout = timeouts->closed_present.get_seconds();
-				presence = true;
+				light = presence = true;
 				continue;
 			}				
 		}
