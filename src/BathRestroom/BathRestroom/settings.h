@@ -40,14 +40,14 @@ typedef struct
 
 typedef struct
 {
-	uint8_t immediate;
+	uint8_t control;
 	room_timeouts_t bathroom, restroom;
 	fan_timeouts_t fan;
 } settings_t;
 
 settings_t settings
 = {
-	immediate: 0,
+	control: 0xff,
 	bathroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
 	restroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
 	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	
@@ -56,7 +56,7 @@ settings_t settings
 
 settings_t EEMEM settings_ee
 = {
-	immediate: 0,
+	control: 0xff,
 	bathroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
 	restroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
 	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	
