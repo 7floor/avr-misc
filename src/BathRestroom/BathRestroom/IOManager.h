@@ -62,6 +62,8 @@ PT_THREAD(IOManager::run())
 {
 	PT_BEGIN(&pt);
 
+	EIFR |= (1 << INTF1); // reset in1 flag, if any
+
 	while(1)
 	{
 		PT_SCHEDULE(run1w());

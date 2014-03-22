@@ -55,7 +55,7 @@ PT_THREAD(Room::run())
 	
 	systime_t timeout;
 	bool d, m, t;
-	
+
 	timeout = 1;
 
 	while(1) 

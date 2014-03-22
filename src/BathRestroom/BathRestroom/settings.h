@@ -46,12 +46,14 @@ typedef struct
 } settings_t;
 
 settings_t settings
+/*
 = {
 	control: 0xff,
 	bathroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
 	restroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 1, is_min: true }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
 	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	
 }
+*/
 ;
 
 settings_t EEMEM settings_ee
@@ -65,7 +67,7 @@ settings_t EEMEM settings_ee
 
 static void settings_read_all()
 {
-	eeprom_write_block(&settings, &settings_ee, sizeof(settings));
+	//eeprom_write_block(&settings, &settings_ee, sizeof(settings));
 	eeprom_read_block(&settings, &settings_ee, sizeof(settings));
 }
 
