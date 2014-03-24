@@ -21,7 +21,7 @@
 
 typedef union
 {
-	uint16_t byte;
+	uint8_t byte;
 	struct
 	{
 		uint8_t addr:7;
@@ -35,7 +35,7 @@ class IOManager
 	struct pt pt1w;
 	byte_cmd_addr addr;
 
-	bool read_1w_byte(byte_cmd_addr& value);
+	bool read_1w_byte(uint8_t *value);
 	void read_sensors();
 	void set_control();
 	void out_port();
@@ -78,7 +78,7 @@ PT_THREAD(IOManager::run())
 
 PT_THREAD(IOManager::run1w())
 {
-	byte_cmd_addr bca;
+	uint8_t b;
 	
 	PT_BEGIN(&pt1w);
 	
@@ -86,28 +86,29 @@ PT_THREAD(IOManager::run1w())
 	{
 		do
 		{
-			PT_WAIT_UNTIL(&pt1w, read_1w_byte(bca));
-		} while (bca.byte != 0xff);
-		addr = bca;
-		
-		PT_WAIT_UNTIL(&pt1w, read_1w_byte(bca));
+			PT_WAIT_UNTIL(&pt1w, read_1w_byte(&b));
+		} while (b == 0xff);
+		addr.byte = b;
+
+		PT_WAIT_UNTIL(&pt1w, read_1w_byte(&b));
 		if (addr.cmd_addr.write)
 		{
-			settings_set(addr.cmd_addr.addr, bca.byte);
+			settings_set(addr.cmd_addr.addr, b);
 		}
 	}
 	
 	PT_ENDLESS(&pt1w);
 }
 	
-bool IOManager::read_1w_byte(byte_cmd_addr& value)
+bool IOManager::read_1w_byte(uint8_t *value)
 {
 	if (EIFR & (1 << INTF1))
 	{
 		EIFR |= (1 << INTF1);
 		IO_D = 0; // all inputs
 		IO_O = 0x0ff; // all with pull-ups
-		value.byte = IO_I;
+		_delay_us(1);
+		*value = IO_I;
 		return true;
 	}
 	return false;
