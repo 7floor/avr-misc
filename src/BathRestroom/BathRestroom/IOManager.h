@@ -19,21 +19,11 @@
 #include "fan.h"
 #include "alarm.h"
 
-typedef union
-{
-	uint8_t byte;
-	struct
-	{
-		uint8_t addr:7;
-		bool write:1;
-	} cmd_addr;
-} byte_cmd_addr;
-
 class IOManager
 {
 	struct pt pt;
 	struct pt pt1w;
-	byte_cmd_addr addr;
+	uint8_t addr;
 
 	bool read_1w_byte(uint8_t *value);
 	void read_sensors();
@@ -52,7 +42,7 @@ class IOManager
 
 IOManager::IOManager()
 {
-	addr.byte = 0;
+	addr = 0;
 	PT_INIT(&pt);
 	PT_INIT(&pt1w);
 	MCUCR |= (1 << ISC11) | (0 << ISC10); // falling edge on int1 (pd3) will trigger
@@ -76,6 +66,9 @@ PT_THREAD(IOManager::run())
 	PT_ENDLESS(&pt);
 }
 
+/*
+write: if bit 0 is 1 and address is 0 then set address else write at current address and reset address to 0
+*/
 PT_THREAD(IOManager::run1w())
 {
 	uint8_t b;
@@ -84,16 +77,15 @@ PT_THREAD(IOManager::run1w())
 	
 	while(1)
 	{
-		do
-		{
-			PT_WAIT_UNTIL(&pt1w, read_1w_byte(&b));
-		} while (b == 0xff);
-		addr.byte = b;
-
 		PT_WAIT_UNTIL(&pt1w, read_1w_byte(&b));
-		if (addr.cmd_addr.write)
+		if (addr == 0 && (b & 0x01))
 		{
-			settings_set(addr.cmd_addr.addr, b);
+			addr = (b >> 2) & 0x3f;
+		}
+		else
+		{
+			settings_set(addr, b);
+			addr = 0;
 		}
 	}
 	
@@ -107,7 +99,7 @@ bool IOManager::read_1w_byte(uint8_t *value)
 		EIFR |= (1 << INTF1);
 		IO_D = 0; // all inputs
 		IO_O = 0x0ff; // all with pull-ups
-		_delay_us(1);
+		_delay_us(10);
 		*value = IO_I;
 		return true;
 	}
@@ -149,7 +141,7 @@ void IOManager::set_control()
 
 void IOManager::out_port()
 {
-	uint8_t b = settings_get(addr.cmd_addr.addr);
+	uint8_t b = settings_get(addr);
 	OUT_SAFE(b);
 }
 

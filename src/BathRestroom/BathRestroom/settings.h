@@ -76,6 +76,9 @@ static void settings_set(uint8_t addr, uint8_t data)
 	if (addr >= sizeof(settings)) return;
 	
 	uint8_t* ptr = (uint8_t*)(&settings) + addr;
+	
+	if (*ptr == data) return; // will save eeprom
+	
 	*ptr = data;
 	
 	if (addr == 0) return; // don't store the 'immediate' member
