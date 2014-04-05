@@ -40,6 +40,7 @@ class Room
 
 	bool get_light() { return light; };
 	bool get_presence() { return presence; }
+	bool get_dooropen() { return dooropen; }
 };
 
 
@@ -67,6 +68,7 @@ PT_THREAD(Room::run())
 			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (!d || m || t)));
 			if (!d)
 			{
+				m = t = false;
 				if(!presence) light = false;
 				timeout = timeouts->closed_absent.get_seconds();
 			}
@@ -80,6 +82,7 @@ PT_THREAD(Room::run())
 			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (d || m || t)));
 			if (d)
 			{
+				m = t = false;
 				light = true;
 				timeout = timeouts->open_absent.get_seconds();
 			}
