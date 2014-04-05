@@ -23,6 +23,7 @@ class Room
 	
 	struct pt pt;
 	timer tmr;
+	timer tmrdm;
 	room_timeouts_t *timeouts;
 
 	bool light;
@@ -30,6 +31,8 @@ class Room
 	bool dooropen;
 	bool movement;
 
+	bool lastdoor;
+	
 	public:
 
 	Room(room_timeouts_t *timeouts);
@@ -54,15 +57,56 @@ PT_THREAD(Room::run())
 {
 	PT_BEGIN(&pt);
 	
-	systime_t timeout;
-	bool d, m, t;
+	systime_t timeout, tdm;
+	bool dd, d, m, t;
 
 	timeout = 1;
 
 	while(1) 
 	{
 		timer_s_set(&tmr, timeout);
+		timer_set(&tmrdm, tdm);
+		
+		PT_YIELD_UNTIL(&pt, (d = dooropen, dd = d != lastdoor, m = movement && timer_expired(&tmrdm), t = timer_s_expired(&tmr), (dd || m || t)));
 
+		tdm = 0;
+		
+		if (dd) //door change
+		{
+			lastdoor = d;
+			if (d)
+			{
+				light = true;
+				timeout = timeouts->door_opened.get_seconds();
+			}
+			else
+			{
+				if(!presence) light = false;
+				tdm = ((uint16_t)settings.move_inhibit_128ms_ticks) * 128;
+				timeout = timeouts->door_closed.get_seconds();
+			}
+		}
+		else if (m)
+		{
+			light = presence = true;
+			if (d)
+			{
+				timeout = timeouts->open_present.get_seconds();
+			}
+			else
+			{
+				timeout = timeouts->closed_present.get_seconds();
+			}
+		}
+		else // timeout
+		{
+			light = presence = false;
+			timeout = 1;
+		}
+		
+		
+		
+/*
 		if(dooropen)
 		{
 			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (!d || m || t)));
@@ -100,6 +144,8 @@ PT_THREAD(Room::run())
 			light = presence = false; 
 			timeout = 1;
 		}
+		
+*/		
 	}
 
 	PT_ENDLESS(pt);

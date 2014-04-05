@@ -30,7 +30,7 @@ typedef struct
 
 typedef struct
 {
-	timeout_t open_absent, open_present, closed_absent, closed_present;
+	timeout_t door_opened, door_closed, open_present, closed_present;
 } room_timeouts_t;
 
 typedef struct  
@@ -41,19 +41,21 @@ typedef struct
 typedef struct
 {
 	uint8_t control;
+	bool alarm;
+	uint8_t move_inhibit_128ms_ticks;
 	room_timeouts_t bathroom, restroom;
 	fan_timeouts_t fan;
-	bool alarm;
 } settings_t;
 
 settings_t settings;
 
 settings_t EEMEM settings_ee = {
 	control: 0xff,
-	bathroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 30, is_min: false }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
-	restroom: { open_absent: { val: 3, is_min: false }, open_present: { val: 30, is_min: false }, closed_absent: { val: 2, is_min: false }, closed_present: { val: 5, is_min: true } },
+	alarm: true,
+	move_inhibit_128ms_ticks: 8,
+	bathroom: { door_opened: { val: 5, is_min: false }, door_closed: { val: 3, is_min: false }, open_present: { val: 30, is_min: false }, closed_present: { val: 5, is_min: true } },
+	restroom: { door_opened: { val: 5, is_min: false }, door_closed: { val: 3, is_min: false }, open_present: { val: 30, is_min: false }, closed_present: { val: 5, is_min: true } },
 	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	,
-	alarm: true
 };
 
 static void settings_read_all()

@@ -55,7 +55,7 @@ PT_THREAD(Fan::run())
 	{
 		PT_WAIT_UNTIL(&pt, restroom.get_presence() && !restroom.get_dooropen());
 		timer_s_set(&tmr, settings.fan.min_presence.get_seconds());
-		PT_WAIT_UNTIL(&pt, (t = timer_s_expired(&tmr), (t || restroom.get_dooropen())));
+		PT_WAIT_UNTIL(&pt, (t = timer_s_expired(&tmr), (t || restroom.get_dooropen() || !restroom.get_presence())));
 		if (t)
 		{
 			active = true;
