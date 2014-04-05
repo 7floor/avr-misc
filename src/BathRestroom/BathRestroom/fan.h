@@ -25,6 +25,7 @@ class Fan
 	timer tmr;
 	bool active;
 
+	bool restroom_occupied() { return restroom.get_presence() && !restroom.get_dooropen(); }
 	public:
 
 	Fan();
@@ -53,13 +54,13 @@ PT_THREAD(Fan::run())
 	
 	while(1) 
 	{
-		PT_WAIT_UNTIL(&pt, restroom.get_presence() && !restroom.get_dooropen());
+		PT_WAIT_UNTIL(&pt, restroom_occupied());
 		timer_s_set(&tmr, settings.fan.min_presence.get_seconds());
-		PT_WAIT_UNTIL(&pt, (t = timer_s_expired(&tmr), (t || restroom.get_dooropen() || !restroom.get_presence())));
+		PT_WAIT_UNTIL(&pt, (t = timer_s_expired(&tmr), (t || !restroom_occupied())));
 		if (t)
 		{
 			active = true;
-			PT_WAIT_UNTIL(&pt, restroom.get_dooropen());
+			PT_WAIT_UNTIL(&pt, !restroom_occupied());
 			timer_s_set(&tmr, settings.fan.duration.get_seconds());
 			PT_WAIT_UNTIL(&pt, timer_s_expired(&tmr));
 			active = false;
