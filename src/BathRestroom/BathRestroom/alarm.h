@@ -39,7 +39,7 @@ class Alarm
 	
 		while(1)
 		{
-			PT_WAIT_UNTIL(&pt, !CHECKBIT(LEAK_I, LEAK_BR_I) || !CHECKBIT(LEAK_I, LEAK_RR_I));
+			PT_WAIT_UNTIL(&pt, settings.alarm && (!CHECKBIT(LEAK_I, LEAK_BR_I) || !CHECKBIT(LEAK_I, LEAK_RR_I)));
 		
 			#ifdef MORSE_CODE_SOS
 		
