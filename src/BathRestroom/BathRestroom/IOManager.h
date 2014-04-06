@@ -136,6 +136,11 @@ void IOManager::set_control()
 	COPYBIT(LEAK_I, LEAK_BR_I, b, LEAK_BR_O);
 	COPYBIT(LEAK_I, LEAK_RR_I, b, LEAK_RR_O);
 	
+	if (!CHECKBIT(LEAK_I, LEAK_BR_I) || !CHECKBIT(LEAK_I, LEAK_RR_I))
+	{
+		alarm.morse_sos(1);
+	}
+	
 	settings.control = b;
 }
 

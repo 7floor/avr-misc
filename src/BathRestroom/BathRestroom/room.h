@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "pt_ext.h"
 #include "settings.h"
+#include "alarm.h"
 extern "C" 
 {
 	#include "timers/timers.h"
@@ -20,10 +21,9 @@ extern "C"
 class Room
 {
 	private:
-	
+	public:
 	struct pt pt;
 	timer tmr;
-	timer tmrdm;
 	room_timeouts_t *timeouts;
 
 	bool light;
@@ -32,6 +32,7 @@ class Room
 	bool movement;
 
 	bool lastdoor;
+	bool lastmove;
 	
 	public:
 
@@ -57,19 +58,18 @@ PT_THREAD(Room::run())
 {
 	PT_BEGIN(&pt);
 	
-	systime_t timeout, tdm;
-	bool dd, d, m, t;
+	systime_t timeout;
+	bool dd, d, dm, m, t;
 
 	timeout = 1;
 
 	while(1) 
 	{
-		timer_s_set(&tmr, timeout);
-		timer_set(&tmrdm, tdm);
+		if (timeout) timer_s_set(&tmr, timeout);
 		
-		PT_YIELD_UNTIL(&pt, (d = dooropen, dd = d != lastdoor, m = movement && timer_expired(&tmrdm), t = timer_s_expired(&tmr), (dd || m || t)));
+		PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, dd = (d != lastdoor), dm = (m != lastmove), t = timer_s_expired(&tmr), (dd || dm || t)));
 
-		tdm = 0;
+		timeout = 0;
 		
 		if (dd) //door change
 		{
@@ -82,70 +82,45 @@ PT_THREAD(Room::run())
 			else
 			{
 				if(!presence) light = false;
-				tdm = ((uint16_t)settings.move_inhibit_128ms_ticks) * 128;
+				presence = false;
 				timeout = timeouts->door_closed.get_seconds();
 			}
 		}
-		else if (m)
+		else if (dm)
 		{
-			light = presence = true;
-			if (d)
+			lastmove = m;
+			if (m)
 			{
-				timeout = timeouts->open_present.get_seconds();
+				if (!presence) alarm.beep(1, 100, 5);
+				light = presence = true;
+				if (d)
+				{
+					timeout = timeouts->presence_open.get_seconds();
+				}
+				else
+				{
+					timeout = timeouts->presence_closed.get_seconds();
+				}
 			}
 			else
 			{
-				timeout = timeouts->closed_present.get_seconds();
-			}
+				timeout = 0;
+			}			
 		}
 		else // timeout
 		{
-			light = presence = false;
-			timeout = 1;
-		}
-		
-		
-		
-/*
-		if(dooropen)
-		{
-			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (!d || m || t)));
-			if (!d)
+			if (presence)
 			{
-				m = t = false;
-				if(!presence) light = false;
-				timeout = timeouts->closed_absent.get_seconds();
+				alarm.beep(3, 200, 5);
+				presence = false;
+				timeout = timeouts->presence_guard.get_seconds();
 			}
-			else if (m)
+			else
 			{
-				timeout = timeouts->open_present.get_seconds();
+				light = false;
+				timeout = 1;
 			}
 		}
-		else
-		{
-			PT_YIELD_UNTIL(&pt, (d = dooropen, m = movement, t = timer_s_expired(&tmr), (d || m || t)));
-			if (d)
-			{
-				m = t = false;
-				light = true;
-				timeout = timeouts->open_absent.get_seconds();
-			}
-			else if (m)
-			{
-				timeout = timeouts->closed_present.get_seconds();
-			}
-		}
-		if (m)
-		{
-			 light = presence = true;
-		}		
-		else if (t) 
-		{
-			light = presence = false; 
-			timeout = 1;
-		}
-		
-*/		
 	}
 
 	PT_ENDLESS(pt);
