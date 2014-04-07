@@ -68,6 +68,8 @@ class Alarm
 		{
 			PT_YIELD_UNTIL(&pt, task.cmd != none);
 			
+			if (!settings.options.sound_enabled) task.cmd = none;
+			
 			if (task.cmd == do_beep)
 			{
 				SETBIT(ALARM_O, ALARM);

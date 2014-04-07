@@ -74,22 +74,22 @@ PT_THREAD(Room::run())
 		if (dd) //door change
 		{
 			lastdoor = d;
-			if (d)
+			if (d) // opened
 			{
 				light = true;
 				timeout = timeouts->door_opened.get_seconds();
 			}
-			else
+			else // closed
 			{
 				if(!presence) light = false;
 				presence = false;
 				timeout = timeouts->door_closed.get_seconds();
 			}
 		}
-		else if (dm)
+		else if (dm) //move detector change
 		{
 			lastmove = m;
-			if (m)
+			if (m) // front
 			{
 				if (!presence) alarm.beep(1, 100, 5);
 				light = presence = true;
@@ -102,22 +102,22 @@ PT_THREAD(Room::run())
 					timeout = timeouts->presence_closed.get_seconds();
 				}
 			}
-			else
+			else // fall, don't change timer
 			{
 				timeout = 0;
 			}			
 		}
 		else // timeout
 		{
-			if (presence)
+			timeout = timeouts->presence_guard.get_seconds();
+			if (timeout > 0 && presence)
 			{
 				alarm.beep(3, 200, 5);
 				presence = false;
-				timeout = timeouts->presence_guard.get_seconds();
 			}
 			else
 			{
-				light = false;
+				light = presence = false;
 				timeout = 1;
 			}
 		}
