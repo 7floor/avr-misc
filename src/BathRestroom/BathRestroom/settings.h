@@ -57,8 +57,8 @@ settings_t settings;
 settings_t EEMEM settings_ee = {
 	control: 0xff,
 	options: { sound_enabled: true, leak_alarm_enabled: true },
-	bathroom: { door_opened: { val: 5, is_min: false }, door_closed: { val: 3, is_min: false }, presence_open: { val: 30, is_min: false }, presence_closed: { val: 5, is_min: true }, presence_guard: { val: 5, is_min: false } },
-	restroom: { door_opened: { val: 5, is_min: false }, door_closed: { val: 3, is_min: false }, presence_open: { val: 30, is_min: false }, presence_closed: { val: 5, is_min: true }, presence_guard: { val: 5, is_min: false } },
+	bathroom: { door_opened: { val: 5, is_min: false }, door_closed: { val: 3, is_min: false }, presence_open: { val: 1, is_min: true }, presence_closed: { val: 5, is_min: true }, presence_guard: { val: 5, is_min: false } },
+	restroom: { door_opened: { val: 5, is_min: false }, door_closed: { val: 3, is_min: false }, presence_open: { val: 1, is_min: true }, presence_closed: { val: 5, is_min: true }, presence_guard: { val: 5, is_min: false } },
 	fan: { min_presence: { val: 1, is_min: true }, duration: { val: 1, is_min: true } }	,
 };
 

@@ -24,7 +24,7 @@ typedef struct alarm_task {
 	alarm_cmd cmd;
 	uint8_t times; // 0 = until other cmd
 	systime_t period;
-	systime_t pulse;
+	systime_t length;
 };
 
 class Alarm
@@ -41,12 +41,12 @@ class Alarm
 		PT_INIT(&pt);
 	}
 	
-	void beep(uint8_t times, systime_t period, systime_t pulse)
+	void beep(uint8_t times, systime_t length, systime_t period)
 	{
 		task.cmd = do_beep;
 		task.times = times;
+		task.length = length;
 		task.period = period;
-		task.pulse = pulse;
 	}
 	
 	void morse_sos(uint8_t times)
@@ -74,7 +74,7 @@ class Alarm
 			{
 				SETBIT(ALARM_O, ALARM);
 				stopwatch_start(&sw);
-				PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, task.pulse));
+				PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, task.length));
 				CLEARBIT(ALARM_O, ALARM);
 				PT_WAIT_UNTIL(&pt, stopwatch_elapsed(&sw, task.period));
 			} 

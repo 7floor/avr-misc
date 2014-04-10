@@ -9,6 +9,9 @@
 #ifndef ROOM_H_
 #define ROOM_H_
 
+#define BEEP_LENGTH 10
+#define BEEP_PERIOD 200
+
 #include <stdint.h>
 #include "pt_ext.h"
 #include "settings.h"
@@ -91,7 +94,7 @@ PT_THREAD(Room::run())
 			lastmove = m;
 			if (m) // front
 			{
-				if (!presence) alarm.beep(1, 100, 5);
+				if (!presence) alarm.beep(1, BEEP_LENGTH, BEEP_LENGTH);
 				light = presence = true;
 				if (d)
 				{
@@ -112,7 +115,7 @@ PT_THREAD(Room::run())
 			timeout = timeouts->presence_guard.get_seconds();
 			if (timeout > 0 && presence)
 			{
-				alarm.beep(3, 200, 5);
+				alarm.beep(3, BEEP_LENGTH, BEEP_PERIOD);
 				presence = false;
 			}
 			else
