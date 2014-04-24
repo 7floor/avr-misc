@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 
 extern "C"
@@ -21,6 +22,13 @@ extern "C"
 #include "fan.h"
 #include "alarm.h"
 
+static void init_io()
+{
+	SET_PORTA();
+	SET_PORTB();
+	SET_PORTD();
+}
+
 static void reset_ds2408()
 {
 	STROBE_O &= ~(1 << STROBE);
@@ -30,24 +38,20 @@ static void reset_ds2408()
 	STROBE_O |= (1 << STROBE);
 }
 
-static void init_io()
-{
-	SET_PORTA();
-	SET_PORTB();
-	SET_PORTD();
-}
-
 int main(void) 
 {
+	wdt_enable(WDTO_1S);
 	init_io();
 	reset_ds2408();
 	settings_read_all();
 	init_systime();
+	alarm.beep(1, 1000, 0);
 	
 	sei();
 	
     while(1)
     {
+		wdt_reset();
 		iomanager.run();
 		bathroom.run();
 		restroom.run();
