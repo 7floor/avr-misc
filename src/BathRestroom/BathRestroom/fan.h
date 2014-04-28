@@ -25,7 +25,7 @@ class Fan
 	timer tmr;
 	bool active;
 
-	bool restroom_occupied() { return restroom.get_presence() && !restroom.get_dooropen(); }
+	bool restroom_occupied() { return restroom.get_light() && !restroom.get_dooropen(); }
 	public:
 
 	Fan();

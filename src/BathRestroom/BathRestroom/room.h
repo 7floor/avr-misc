@@ -46,7 +46,6 @@ class Room
 	void set_movement(bool value) { movement = value; }
 
 	bool get_light() { return light; };
-	bool get_presence() { return presence; }
 	bool get_dooropen() { return dooropen; }
 };
 

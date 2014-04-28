@@ -19,13 +19,13 @@ extern "C"
 	#include "timers/timers.h"
 }
 
-typedef enum alarm_cmd {none, do_beep, do_sos};
-typedef struct alarm_task {
+typedef enum {none, do_beep, do_sos} alarm_cmd;
+typedef struct {
 	alarm_cmd cmd;
 	uint8_t times; // 0 = until other cmd
 	systime_t period;
 	systime_t length;
-};
+} alarm_task;
 
 class Alarm
 {
