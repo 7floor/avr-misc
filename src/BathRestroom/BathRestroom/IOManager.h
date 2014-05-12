@@ -83,7 +83,7 @@ PT_THREAD(IOManager::run1w())
 	{
 		// thought: in phase < 3, the address would be 0, so do we need setting_get()?
 		stopwatch_start(&sw);
-		PT_WAIT_UNTIL(&pt1w, (r = read_1w_byte(&b), t = stopwatch_elapsed(&sw, 100), (r || t)));
+		PT_WAIT_UNTIL(&pt1w, (r = read_1w_byte(&b), t = stopwatch_elapsed(&sw, 250), (r || t)));
 		p = 0;
 		a = 0;
 		if (!t)
