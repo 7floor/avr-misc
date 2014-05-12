@@ -24,6 +24,8 @@ class IOManager
 	struct pt pt;
 	struct pt pt1w;
 	uint8_t addr;
+	uint8_t phase;
+	stopwatch sw;
 
 	bool read_1w_byte(uint8_t *value);
 	void read_sensors();
@@ -43,6 +45,7 @@ class IOManager
 IOManager::IOManager()
 {
 	addr = 0;
+	phase = 0;
 	PT_INIT(&pt);
 	PT_INIT(&pt1w);
 	MCUCR |= (1 << ISC11) | (0 << ISC10); // falling edge on int1 (pd3) will trigger
@@ -71,22 +74,50 @@ write: if bit 0 is 1 and address is 0 then set address else write at current add
 */
 PT_THREAD(IOManager::run1w())
 {
-	uint8_t b;
+	uint8_t a, b, p;
+	bool t, r;
 	
 	PT_BEGIN(&pt1w);
 	
 	while(1)
 	{
-		PT_WAIT_UNTIL(&pt1w, read_1w_byte(&b));
-		if (addr == 0 && (b & 0x01))
+		// thought: in phase < 3, the address would be 0, so do we need setting_get()?
+		stopwatch_start(&sw);
+		PT_WAIT_UNTIL(&pt1w, (r = read_1w_byte(&b), t = stopwatch_elapsed(&sw, 100), (r || t)));
+		p = 0;
+		a = 0;
+		if (!t)
 		{
-			addr = (b >> 2) & 0x3f;
+			p = phase;
+			if (p < 3)
+			{
+				if (b == settings.control)
+				{
+					p++;
+				}
+				else
+				{
+					p = 0;
+				}
+			}
+			else
+			{
+				a = addr;
+				if (a == 0 && (b & 0x01))
+				{
+					a = (b >> 2) & 0x3f;
+				}
+				else
+				{
+					settings_set(a, b);
+					a = 0;
+				}
+			}
 		}
-		else
-		{
-			settings_set(addr, b);
-			addr = 0;
-		}
+		
+		if (p == 0) a = 0;
+		phase = p;
+		addr = a;
 	}
 	
 	PT_ENDLESS(&pt1w);
