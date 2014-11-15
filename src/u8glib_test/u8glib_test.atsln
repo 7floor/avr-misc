@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Atmel Studio Solution File, Format Version 11.00
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "u8glib", "u8glib\u8glib.cproj", "{4531A1C4-8652-4CBB-8ABB-837A2DE111D0}"
+EndProject
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "test", "test\test.cppproj", "{447A0AE6-CCB3-4969-9FD5-E107C913707E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{02736B49-F6E5-48BF-B2B6-3A05F5C3BD36} = {02736B49-F6E5-48BF-B2B6-3A05F5C3BD36}
+		{4531A1C4-8652-4CBB-8ABB-837A2DE111D0} = {4531A1C4-8652-4CBB-8ABB-837A2DE111D0}
+	EndProjectSection
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "timers", "timers\timers.cproj", "{02736B49-F6E5-48BF-B2B6-3A05F5C3BD36}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4531A1C4-8652-4CBB-8ABB-837A2DE111D0}.Debug|AVR.ActiveCfg = Debug|AVR
+		{4531A1C4-8652-4CBB-8ABB-837A2DE111D0}.Debug|AVR.Build.0 = Debug|AVR
+		{4531A1C4-8652-4CBB-8ABB-837A2DE111D0}.Release|AVR.ActiveCfg = Release|AVR
+		{4531A1C4-8652-4CBB-8ABB-837A2DE111D0}.Release|AVR.Build.0 = Release|AVR
+		{447A0AE6-CCB3-4969-9FD5-E107C913707E}.Debug|AVR.ActiveCfg = Debug|AVR
+		{447A0AE6-CCB3-4969-9FD5-E107C913707E}.Debug|AVR.Build.0 = Debug|AVR
+		{447A0AE6-CCB3-4969-9FD5-E107C913707E}.Release|AVR.ActiveCfg = Release|AVR
+		{447A0AE6-CCB3-4969-9FD5-E107C913707E}.Release|AVR.Build.0 = Release|AVR
+		{02736B49-F6E5-48BF-B2B6-3A05F5C3BD36}.Debug|AVR.ActiveCfg = Debug|AVR
+		{02736B49-F6E5-48BF-B2B6-3A05F5C3BD36}.Debug|AVR.Build.0 = Debug|AVR
+		{02736B49-F6E5-48BF-B2B6-3A05F5C3BD36}.Release|AVR.ActiveCfg = Release|AVR
+		{02736B49-F6E5-48BF-B2B6-3A05F5C3BD36}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
