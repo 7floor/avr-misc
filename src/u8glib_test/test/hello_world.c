@@ -127,7 +127,8 @@ systime_t delta_time;
 
 #define FOREVER 65535
 volatile uint16_t average;
-#define SAMPLES_COUNT 3
+float speed;
+#define SAMPLES_COUNT 5
 uint16_t samples[SAMPLES_COUNT];
 
 char running = 0;
@@ -164,7 +165,7 @@ uint16_t get_average()
 	return result;
 }
 
-#define TIMER_F ((float)(F_CPU / 256))
+#define TIMER_F ((float)(F_CPU / 64))
 
 // guess what
 #define PI 3.1415926
@@ -220,20 +221,18 @@ ISR(TIMER1_OVF_vect)
 	add_sample(FOREVER);
 }
 
-void draw(void)
+void draw()
 {
 	//u8g_SetFont(&u8g, u8g_font_unifont_0_8); // russian in ISO charset
 	
 	
 	char buf[20];
 	
-	u8g_SetFont(&u8g, u8g_font_courR08);
+/*	u8g_SetFont(&u8g, u8g_font_courR08);
 	
-//	sprintf(buf, "%d ms", delta_time);
 	sprintf(buf, "%2d FPS", 1000 / delta_time);
-//	sprintf(buf, "%2d FPS (%d ms)", 1000 / delta_time, delta_time);
 	u8g_DrawStr(&u8g, 0, 8, buf);
-	
+	*/
 /*	systime_t ms = get_systime();
 	sprintf(buf, "%u", ms);
 	u8g_DrawStr(&u8g, 32, 32, buf);
@@ -247,20 +246,21 @@ void draw(void)
 	u8g_DrawStr(&u8g, 32, 48, buf);
 	*/
 
-	u8g_SetFont(&u8g, u8g_font_courR18);
-	uint16_t a = get_average();
-	float speed = time_to_speed(a);
-	if (speed < 100000.0)
-	{
-		dtostrf(speed, 5, 2, buf);
-	}
-	else
-	{
-		strcpy(buf, "Rocket!");
-	}
-	u8g_DrawStr(&u8g, 0, 47, buf);
 
 
+	dtostrf(speed, 4, 1, buf);
+	u8g_SetFont(&u8g, u8g_font_courB24r);
+	u8g_DrawStr(&u8g, 0, 24, buf);
+	
+	u8g_SetFont(&u8g, u8g_font_unifont_0_8);
+	u8g_DrawStr(&u8g, 88, 24, "км/ч");
+
+	u8g_DrawFrame(&u8g, 0, 37, 128, 7);
+	u8g_uint_t w = (speed < 10.0 ? speed : 10.0) / 10.0 * 124;
+	u8g_DrawBox(&u8g, 2, 39, w, 3);
+	
+	u8g_DrawStr(&u8g, 20, 60, "Мышометр :)");
+	
 	//dtostrf(time_to_speed(1), 5, 2, buf);
 	//u8g_DrawStr(&u8g, 0, 15, buf);
 	//dtostrf(time_to_speed(1500), 5, 2, buf);
@@ -309,7 +309,8 @@ PORTB |= (1 << PINB0);
 		  (1 << ICNC1) 
 		| (0 << ICES1) 
 		| (0 << WGM13) | (0 << WGM12) 
-		| (1 << CS12) | (0 << CS11) | (0 << CS10);
+//		| (1 << CS12) | (0 << CS11) | (0 << CS10);
+		| (0 << CS12) | (1 << CS11) | (1 << CS10);
 		
 	// enable interrupts for input capture and overflow
 	TIMSK1 = (1 << ICIE1) | (1 << TOIE1);
@@ -323,6 +324,8 @@ PORTB |= (1 << PINB0);
 		systime_t now = get_systime();
 		delta_time = now - last;
 		last = now;
+		
+		speed = time_to_speed(get_average());
 		
 		u8g_FirstPage(&u8g);
 		do
