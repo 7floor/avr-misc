@@ -40,10 +40,13 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(__AVR__)
 #include <avr/interrupt.h>
+#include <util/atomic.h>
 #include <avr/io.h>
 #endif
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
 Software SPI:
@@ -117,6 +120,70 @@ char *text[33] = {
 	""
 };
 
+volatile int num = 0;
+int line = 0;
+int pixel = 15;
+systime_t delta_time;
+
+#define FOREVER 65535
+volatile uint16_t average;
+#define SAMPLES_COUNT 3
+uint16_t samples[SAMPLES_COUNT];
+
+char running = 0;
+
+void init_samples()
+{
+	for(int i = 0; i < SAMPLES_COUNT; i++)
+	{
+		samples[i] = FOREVER;
+	}
+}
+
+void add_sample(uint16_t sample)
+{
+	uint32_t tmp = sample;
+	for(int i = SAMPLES_COUNT - 1; i > 0; i--)
+	{
+		uint16_t s = samples[i-1];
+		samples[i] = s;
+		tmp += s;
+	}
+	samples[0] = sample;
+	tmp /= SAMPLES_COUNT;
+	average = tmp;
+}
+
+uint16_t get_average()
+{
+	uint16_t result;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		result = average;
+	}
+	return result;
+}
+
+#define TIMER_F ((float)(F_CPU / 256))
+
+// guess what
+#define PI 3.1415926
+// wheel diameter, m
+#define WHEEL_D 0.345
+// wheel perimeter length
+#define WHEEL_L (WHEEL_D * PI)
+// single "step " length (wheel has 6 magnets)
+#define STEP_L (WHEEL_L / 6.0)
+// m/s to km/h
+#define KPH_IN_MPH 3.6
+
+float time_to_speed(uint16_t time)
+{
+	if (time == 0 || time == FOREVER) return 0.0;	
+	return STEP_L * TIMER_F * KPH_IN_MPH / (float)time;
+}
+
+
 void sys_init(void)
 {
 #if defined(__AVR__)
@@ -126,24 +193,83 @@ void sys_init(void)
 #endif
 }
 
-int line = 0;
-int pixel = 15;
-systime_t delta_time;
+/*
+ISR(INT0_vect)
+{
+	num++;
+}
+*/
+
+ISR(TIMER1_CAPT_vect)
+{
+	uint16_t tmp = ICR1;
+	
+	if (tmp < 200) return; // debounce
+	
+	TCNT1 = 0;
+	if (running)
+	{
+		add_sample(tmp);
+	}
+	running = 1;
+}
+
+ISR(TIMER1_OVF_vect)
+{
+	running = 0;
+	add_sample(FOREVER);
+}
 
 void draw(void)
 {
 	//u8g_SetFont(&u8g, u8g_font_unifont_0_8); // russian in ISO charset
 	
-	u8g_SetFont(&u8g, u8g_font_courR08);
+	
 	char buf[20];
+	
+	u8g_SetFont(&u8g, u8g_font_courR08);
+	
 //	sprintf(buf, "%d ms", delta_time);
 	sprintf(buf, "%2d FPS", 1000 / delta_time);
 //	sprintf(buf, "%2d FPS (%d ms)", 1000 / delta_time, delta_time);
 	u8g_DrawStr(&u8g, 0, 8, buf);
 	
-	systime_t ms = get_systime();
+/*	systime_t ms = get_systime();
 	sprintf(buf, "%u", ms);
 	u8g_DrawStr(&u8g, 32, 32, buf);
+	
+	int n;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		n = num;
+	}
+	sprintf(buf, "%u", n);
+	u8g_DrawStr(&u8g, 32, 48, buf);
+	*/
+
+	u8g_SetFont(&u8g, u8g_font_courR18);
+	uint16_t a = get_average();
+	float speed = time_to_speed(a);
+	if (speed < 100000.0)
+	{
+		dtostrf(speed, 5, 2, buf);
+	}
+	else
+	{
+		strcpy(buf, "Rocket!");
+	}
+	u8g_DrawStr(&u8g, 0, 47, buf);
+
+
+	//dtostrf(time_to_speed(1), 5, 2, buf);
+	//u8g_DrawStr(&u8g, 0, 15, buf);
+	//dtostrf(time_to_speed(1500), 5, 2, buf);
+	//u8g_DrawStr(&u8g, 0, 31, buf);
+	//dtostrf(time_to_speed(32767), 5, 2, buf);
+	//u8g_DrawStr(&u8g, 0, 47, buf);
+	//dtostrf(time_to_speed(65535), 5, 2, buf);
+	//u8g_DrawStr(&u8g, 0, 63, buf);
+	
 	
 /*
 	u8g_SetFont(&u8g, u8g_font_micro);
@@ -160,6 +286,34 @@ int main(void)
 	sys_init();
 	init_systime();
 	u8g_setup();
+	init_samples();
+
+/*	
+	DDRD &= ~(1 << PIND2);
+	PORTD |= (1 << PIND2);
+	//EICRA |= (0 << ISC01) | (0 << ISC00); // low level
+	EICRA |= (1 << ISC01) | (0 << ISC00); // falling edge
+	//EICRA |= (1 << ISC01) | (1 << ISC00); // rising edge
+	EIMSK |= (1 << INTF0);
+*/	
+
+DDRB &= ~(1 << PINB0);
+PORTB |= (1 << PINB0);
+
+	// no OC1A/B outputs, normal operation
+	TCCR1A = 
+		  (0 << COM1A1) | (0 << COM1A0) | (0 << COM1B1) | (0 << COM1B0)
+		| (0 << WGM11) | (0 << WGM10);
+	// noise canceller, falling edge, normal (cont.), clk/256 prescaler (8mHz/256 = 31250Hz)
+	TCCR1B = 
+		  (1 << ICNC1) 
+		| (0 << ICES1) 
+		| (0 << WGM13) | (0 << WGM12) 
+		| (1 << CS12) | (0 << CS11) | (0 << CS10);
+		
+	// enable interrupts for input capture and overflow
+	TIMSK1 = (1 << ICIE1) | (1 << TOIE1);
+	
 	sei();
 	
 	systime_t last = get_systime();
