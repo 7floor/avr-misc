@@ -40,50 +40,53 @@ systime_t delta_time;
 // m/s to km/h
 #define KPH_IN_MPH 3.6
 
-#define FOREVER 65535
-volatile uint16_t average;
-float speed;
-#define SAMPLES_COUNT 5
+#define SAMPLES_COUNT 4
 uint16_t samples[SAMPLES_COUNT];
-
+int sample_index = 0;
 char running = 0;
 
-void init_samples()
+float speed;
+
+void clear_samples()
 {
-	for(int i = 0; i < SAMPLES_COUNT; i++)
-	{
-		samples[i] = FOREVER;
-	}
+	memset(samples, 0, sizeof(samples));
 }
 
 void add_sample(uint16_t sample)
 {
-	uint32_t tmp = sample;
-	for(int i = SAMPLES_COUNT - 1; i > 0; i--)
-	{
-		uint16_t s = samples[i-1];
-		samples[i] = s;
-		tmp += s;
-	}
-	samples[0] = sample;
-	tmp /= SAMPLES_COUNT;
-	average = tmp;
+	samples[sample_index] = sample;
+	sample_index++;
+	if (sample_index == SAMPLES_COUNT)
+		sample_index = 0;
 }
 
 uint16_t get_average()
 {
-	uint16_t result;
+	uint32_t accumulator = 0;
+	int valid_samples_num = 0;
+	
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		result = average;
+		for (int i = 0; i < SAMPLES_COUNT; i++)
+		{
+			uint16_t sample = samples[i];
+			if (sample > 0)
+			{
+				accumulator += sample;
+				valid_samples_num++;
+			}
+		}
 	}
-	return result;
+	
+	return valid_samples_num == 0 
+		? 0 
+		: accumulator / valid_samples_num;
 }
 
 
 float time_to_speed(uint16_t time)
 {
-	if (time == 0 || time == FOREVER) return 0.0;	
+	if (time == 0) return 0.0;	
 	return STEP_L * TIMER_F * KPH_IN_MPH / (float)time;
 }
 
@@ -92,11 +95,11 @@ ISR(TIMER1_CAPT_vect)
 {
 	uint16_t tmp = ICR1;
 	
-	if (tmp < 200) return; // debounce
+	//if (tmp < (uint16_t)(STEP_L * TIMER_F * KPH_IN_MPH / 50)) return; // debounce: can't be faster than 50 km/h // doesn't really help; a capacitor @ 0.01uF is way better
 	
-	TCNT1 = 0;
 	if (running)
 	{
+		TCNT1 = 0;
 		add_sample(tmp);
 	}
 	running = 1;
@@ -105,7 +108,7 @@ ISR(TIMER1_CAPT_vect)
 ISR(TIMER1_OVF_vect)
 {
 	running = 0;
-	add_sample(FOREVER);
+	clear_samples();
 }
 
 void draw()
@@ -131,7 +134,7 @@ int main(void)
 	sys_init();
 	init_systime();
 	u8g_setup();
-	init_samples();
+	clear_samples();
 
 DDRB &= ~(1 << PINB0);
 PORTB |= (1 << PINB0);
