@@ -28,7 +28,8 @@ void u8g_setup(void)
 
 systime_t delta_time;
 
-#define TIMER_F ((float)(F_CPU / 64))
+#define TIMER_SCALE 256
+#define TIMER_F ((float)(F_CPU / TIMER_SCALE))
 // guess what
 #define PI 3.1415926
 // wheel diameter, m
@@ -136,19 +137,23 @@ int main(void)
 	u8g_setup();
 	clear_samples();
 
-DDRB &= ~(1 << PINB0);
-PORTB |= (1 << PINB0);
+	DDRB &= ~(1 << PINB0);
+	PORTB |= (1 << PINB0);
 
-	// no OC1A/B outputs, normal operation
+	// OC1A/B outputs disconnected
+	// Fast PWM with TOP=OCR1A
+	// Input capture enabled at falling edge
+	// noise canceler enabled
+	// prescaler at 256
 	TCCR1A = 
 		  (0 << COM1A1) | (0 << COM1A0) | (0 << COM1B1) | (0 << COM1B0)
-		| (0 << WGM11) | (0 << WGM10);
-	// noise canceller, falling edge, normal (cont.), clk/256 prescaler (8 MHz/64 = 125000 Hz)
+		| (1 << WGM11) | (1 << WGM10);
 	TCCR1B = 
-		  (1 << ICNC1) 
-		| (0 << ICES1) 
-		| (0 << WGM13) | (0 << WGM12) 
-		| (0 << CS12) | (1 << CS11) | (1 << CS10);
+		  (1 << ICNC1) | (0 << ICES1) 
+		| (1 << WGM13) | (1 << WGM12) 
+		| (1 << CS12) | (0 << CS11) | (0 << CS10);
+		
+	OCR1A = F_CPU / TIMER_SCALE; // will overflow each 1 s.
 		
 	// enable interrupts for input capture and overflow
 	TIMSK1 = (1 << ICIE1) | (1 << TOIE1);
